@@ -1,9 +1,3 @@
-import chart_studio
-
-chart_studio.tools.set_credentials_file(username='jcbunch3', api_key='u8kYGBp9LdDuM1HNdF9w')
-
-chart_studio.tools.set_config_file(world_readable=True, sharing='public')
-
 import chart_studio.plotly as py
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots

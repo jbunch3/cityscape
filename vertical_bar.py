@@ -59,7 +59,7 @@ fig6.update_layout(
         )
         })
 fig5.show()
-fig4.show()
+fig6.show()
 
 py.plot(figTop10, filename = 'destBar1', auto_open=True)
 py.plot(figPop10, filename = 'destBar2', auto_open=True)    

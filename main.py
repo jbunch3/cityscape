@@ -133,6 +133,10 @@ rawData['capital'] = rawData['type'].map(capital)
 
 BaseModel = Model(baseLayout, rawData)
 
+#############################################################################################################################
+# Old Building Example
+#############################################################################################################################
+
 variables = VariableSet(
     yVar="overnights_per_capita_2019",
     xVar="instagram_post_count_cap",
@@ -248,6 +252,10 @@ corrVar = [
         xVar="destruction",
         xTitle="Destruction",
     ),
+    VariableSet(
+        xVar="monuments",
+        xTitle="Monument",
+    ),
 ]
 
 
@@ -262,7 +270,7 @@ linearModelXVars = [
         xVar="area_km2",
     ),
     VariableSet(
-        xVar="hotels_2019_per_capita",
+        xVar="hotelsOnly_per_capita_2019",
     ),
     VariableSet(
         xVar="old_per_capita",
@@ -272,6 +280,9 @@ linearModelXVars = [
     ),
     VariableSet(
         xVar="capital",
+    ),
+    VariableSet(
+        xVar="monuments",
     ),
 ]
 
@@ -296,7 +307,7 @@ linearModelXVars = [
         xVar="area_km2",
     ),
     VariableSet(
-        xVar="hotels_2019_per_capita",
+        xVar="hotelsOnly_per_capita_2019",
     ),
     VariableSet(
         xVar="instagram_post_count_cap",
@@ -309,6 +320,9 @@ linearModelXVars = [
     ),
     VariableSet(
         xVar="capital",
+    ),
+    VariableSet(
+        xVar="monuments",
     ),
 ]
 
@@ -336,3 +350,138 @@ print(model_overnights.summary())
 # print(res.summary().as_latex())
 print(model_instagram.summary())
 print(model_lengthofstay.summary())
+
+# End Old Building Example
+
+#############################################################################################################################
+# Nature Example
+#############################################################################################################################
+
+
+rawData = pd.read_excel("./KreisDatasSmall.xlsx")
+
+modelData = rawData[['ID', 'No', 'GeoName', 'SimpleName', 'GpdCapita', 'Population',
+                     'OldBuildings', 'AreaKm2', 'City', 'AllAccomodation2019', 'Beds2019',
+                     'Arrivals2019', 'Overnights2019', 'AverageLengthStay2019',
+                     'OvernightsCapita2019', 'ArrivalsDomestic', 'ArrivalsForeign',
+                     'OvernightsDomestic', 'OvernightsForeign', 'AreaPark',
+                     'Hotels', 'TrainLines', 'UNESCO Sites']]
+
+# modelData = rawData[['ID', 'No', 'GeoName', 'SimpleName', 'GpdCapita', 'Population',
+#                      'OldBuildings', 'AreaKm2', 'City', 'AllAccomodation2019', 'Beds2019',
+#                      'Arrivals2019', 'Overnights2019', 'AverageLengthStay2019',
+#                      'OvernightsCapita2019', 'ArrivalsDomestic', 'ArrivalsForeign',
+#                      'OvernightsDomestic', 'OvernightsForeign', 'AreaPark', 'AreaKm2Calc',
+#                      'Hotels', 'TrainLines', 'UNESCO Sites']]
+
+modelData["old_per_km2"] = modelData["OldBuildings"].div(
+    modelData["AreaKm2"].values)
+modelData["old_per_capita"] = modelData["OldBuildings"].div(
+    modelData["Population"].values)
+modelData["overnights_per_capita"] = modelData["Overnights2019"].div(
+    modelData["Population"].values)
+modelData["overnights_per_capita_foreign"] = modelData["OvernightsForeign"].div(
+    modelData["Population"].values)
+modelData["overnights_per_capita_domestic"] = modelData["OvernightsDomestic"].div(
+    modelData["Population"].values)
+modelData["hotelsOnly_per_capita"] = modelData["Hotels"].div(
+    modelData["Population"].values)
+modelData["trainkm_per_capita"] = modelData["TrainLines"].div(
+    modelData["Population"].values)
+
+
+BaseModel = Model(baseLayout, modelData.dropna())
+
+corrVar = [
+    VariableSet(
+        xVar="AreaPark",
+        xTitle="Area Park",
+    ),
+    VariableSet(
+        xVar="trainkm_per_capita",
+        xTitle="Train Km p.C.",
+    ),
+    VariableSet(
+        xVar="overnights_per_capita",
+        xTitle="Overnights p.C.",
+    ),
+    VariableSet(
+        xVar="overnights_per_capita_foreign",
+        xTitle="Overnights F p.C.",
+    ),
+    VariableSet(
+        xVar="overnights_per_capita_domestic",
+        xTitle="Overnights D p.C.",
+    ),
+    VariableSet(
+        xVar="GpdCapita",
+        xTitle="GDP p.C.",
+    ),
+    VariableSet(
+        xVar="AreaKm2",
+        xTitle="Area Km2",
+    ),
+    VariableSet(
+        xVar="old_per_capita",
+        xTitle="Old Buildings p. C.",
+    ),
+    VariableSet(
+        xVar="hotelsOnly_per_capita",
+        xTitle="Hotels p.C.",
+    ),
+    VariableSet(
+        xVar="UNESCO Sites",
+        xTitle="UNESCO Sites",
+    ),
+    VariableSet(
+        xVar="City",
+        xTitle="City",
+    ),
+]
+
+
+corrPlot = BaseModel.CorrelationHeatPlot(False, corr_layout, corrVar)
+corrPlot.show()
+
+
+linearModelXVars = [
+    VariableSet(
+        xVar="AreaPark",
+    ),
+    VariableSet(
+        xVar="GpdCapita",
+    ),
+    VariableSet(
+        xVar="old_per_capita",
+    ),
+    VariableSet(
+        xVar="hotelsOnly_per_capita",
+    ),
+    VariableSet(
+        xVar="UNESCO Sites",
+    ),
+    VariableSet(
+        xVar="City",
+    ),
+]
+
+linearModelYVar = VariableSet(
+    yVar="overnights_per_capita",
+)
+
+model_overnights = BaseModel.LinearModel(linearModelYVar, linearModelXVars)
+print(model_overnights.summary())
+
+linearModelYVar = VariableSet(
+    yVar="overnights_per_capita_foreign",
+)
+
+model_overnights_f = BaseModel.LinearModel(linearModelYVar, linearModelXVars)
+print(model_overnights_f.summary())
+
+linearModelYVar = VariableSet(
+    yVar="overnights_per_capita_domestic",
+)
+
+model_overnights_f = BaseModel.LinearModel(linearModelYVar, linearModelXVars)
+print(model_overnights_f.summary())

@@ -7,6 +7,9 @@ from sklearn.linear_model import LinearRegression
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 from typing import List
+import plotly.figure_factory as ff
+from sklearn.preprocessing import MaxAbsScaler
+import plotly.express as px
 
 
 class VariableSet():
@@ -182,5 +185,76 @@ class Model():
         fig.add_trace(olsLine)
 
         fig.update_layout(showlegend=False)
+
+        return fig
+
+    def SimpleNormalDistOverlay(self, layout: dict, variableSets: List[VariableSet]):
+        colors = ['rgba(122, 34, 15, 0.8)', 'rgba(19, 85, 99, 0.8)']
+        stdVars = pd.DataFrame([])
+
+        stdVars[[variableSets[0].xVar, variableSets[1].xVar]] = MaxAbsScaler(
+        ).fit_transform(self.data[[variableSets[0].xVar, variableSets[1].xVar]])
+
+        # Create distplot with curve_type set to 'normal'
+        fig = ff.create_distplot([stdVars[variableSets[0].xVar], stdVars[variableSets[1].xVar]],
+                                 [variableSets[0].xTitle,
+                                     variableSets[1].xTitle], bin_size=.05,
+                                 curve_type='normal',
+                                 colors=colors,
+                                 show_rug=False)
+
+        # Add title
+        fig.update_layout({**self.layout, **layout})
+        fig.update_layout(title_text='Normal Distribution Plot',
+                          title_x=0.5, title_y=1)
+
+        fig.for_each_xaxis(lambda x: x.update(showgrid=True, showline=True, linewidth=1,
+                           linecolor='rgba(0,0,0,0.3)', gridcolor='rgba(0,0,0,0.1)', rangemode="tozero"))
+        fig.for_each_yaxis(lambda x: x.update(showgrid=True, showline=True, linewidth=1,
+                           linecolor='rgba(0,0,0,0.3)', gridcolor='rgba(0,0,0,0.1)', rangemode="tozero"))
+
+        return fig
+
+    def CorrelationHeatPlot(self, mobile: bool, layout: dict, variableSets: List[VariableSet]):
+
+        varlist = list(map(lambda var: var.xVar, variableSets))
+        corrNames = list(map(lambda var: var.xTitle, variableSets))
+
+        corr = self.data[varlist].dropna().corr(numeric_only=True)
+
+        mask = np.triu(np.ones_like(corr, dtype=bool))
+
+        corrplot = go.Heatmap(
+            z=corr.mask(mask),
+            x=corrNames,
+            y=corrNames,
+            colorscale=px.colors.diverging.RdBu,
+            zmin=-1,
+            zmax=1
+        )
+
+        corrplotMob = go.Heatmap(
+            z=corr.mask(mask),
+            x=corrNames,
+            y=corrNames,
+            colorscale=px.colors.diverging.RdBu,
+            showscale=False,
+            zmin=-1,
+            zmax=1
+        )
+
+        m_layout = {
+            'xaxis': dict(
+                showticklabels=False,
+            ),
+            'yaxis': dict(
+                showticklabels=False,
+            ),
+        }
+
+        fig = go.Figure(data=[corrplot], layout={**self.layout, **layout})
+        if mobile:
+            fig = go.Figure(data=[corrplotMob], layout={
+                            **self.layout, **layout, **m_layout})
 
         return fig

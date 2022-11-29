@@ -10,6 +10,7 @@ from typing import List
 import plotly.figure_factory as ff
 from sklearn.preprocessing import MaxAbsScaler
 import plotly.express as px
+import statsmodels.api as sm
 
 
 class VariableSet():
@@ -258,3 +259,18 @@ class Model():
                             **self.layout, **layout, **m_layout})
 
         return fig
+
+    def LinearModel(self, yVarSet: VariableSet, XVariableSets: List[VariableSet]):
+
+        varlist = list(map(lambda var: var.xVar, XVariableSets))
+
+        data = self.data.dropna()
+
+        y = data[[yVarSet.yVar]]
+        X = data[varlist].apply(pd.to_numeric)
+
+        X = sm.add_constant(X)
+        mod = sm.OLS(y, X)
+        res = mod.fit(cov_type='HC3', use_t=True)
+
+        return res

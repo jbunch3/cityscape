@@ -111,6 +111,22 @@ rawData["instagram_post_count_cap"] = rawData["instagram_post_count"].div(
 rawData["hotelsOnly_per_capita_2019"] = rawData["only_hotels_2019"].div(
     rawData["population_2011"].values)
 
+rawData["hotels_2019_per_capita"] = rawData["hotels_2019"].div(
+    rawData["population_2011"].values)
+rawData["beds_2019_per_capita"] = rawData["beds_2019"].div(
+    rawData["population_2011"].values)
+rawData["arrivals_2019_per_capita"] = rawData["arrivals_2019"].div(
+    rawData["population_2011"].values)
+rawData["overnights_per_capita_2019"] = rawData["Overnights_2019"].div(
+    rawData["population_2011"].values)
+
+rawData["hotels_2021_per_capita"] = rawData["hotels_2021"].div(
+    rawData["population_2011"].values)
+rawData["beds_2021_per_capita"] = rawData["beds_2021"].div(
+    rawData["population_2011"].values)
+rawData["arrivals_2021_per_capita"] = rawData["arrivals_2021"].div(
+    rawData["population_2011"].values)
+
 capital = {'Landeshauptstadt': 1, 'Stadtkreis': 0,
            'Stadt': 0, 'Universitätsstadt': 0}
 rawData['capital'] = rawData['type'].map(capital)
@@ -238,6 +254,69 @@ corrVar = [
 corrPlot = BaseModel.CorrelationHeatPlot(False, corr_layout, corrVar)
 corrPlotM = BaseModel.CorrelationHeatPlot(True, corr_layout, corrVar)
 
+linearModelXVars = [
+    VariableSet(
+        xVar="gdp_capita",
+    ),
+    VariableSet(
+        xVar="area_km2",
+    ),
+    VariableSet(
+        xVar="hotels_2019_per_capita",
+    ),
+    VariableSet(
+        xVar="old_per_capita",
+    ),
+    VariableSet(
+        xVar="destruction",
+    ),
+    VariableSet(
+        xVar="capital",
+    ),
+]
+
+linearModelYVar = VariableSet(
+    yVar="overnights_per_capita_2019",
+)
+
+model_overnights = BaseModel.LinearModel(linearModelYVar, linearModelXVars)
+
+
+linearModelYVar = VariableSet(
+    yVar="instagram_post_count_cap",
+)
+
+model_instagram = BaseModel.LinearModel(linearModelYVar, linearModelXVars)
+
+linearModelXVars = [
+    VariableSet(
+        xVar="gdp_capita",
+    ),
+    VariableSet(
+        xVar="area_km2",
+    ),
+    VariableSet(
+        xVar="hotels_2019_per_capita",
+    ),
+    VariableSet(
+        xVar="instagram_post_count_cap",
+    ),
+    VariableSet(
+        xVar="old_per_capita",
+    ),
+    VariableSet(
+        xVar="destruction",
+    ),
+    VariableSet(
+        xVar="capital",
+    ),
+]
+
+linearModelYVar = VariableSet(
+    yVar="average_stay_length_2019",
+)
+
+model_lengthofstay = BaseModel.LinearModel(linearModelYVar, linearModelXVars)
 
 fancyScatterHotels.show()
 fancyScatterOvernights.show()
@@ -252,3 +331,8 @@ corrPlot.show()
 corrPlotM.show()
 # py.plot(fig, filename='corr1', auto_open=False)
 # py.plot(fig, filename='corrMob1', auto_open=False)
+
+print(model_overnights.summary())
+# print(res.summary().as_latex())
+print(model_instagram.summary())
+print(model_lengthofstay.summary())

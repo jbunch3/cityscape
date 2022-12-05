@@ -246,7 +246,7 @@ class Model():
 
         m_layout = {
             'xaxis': dict(
-                showticklabels=False,
+                tickangle=90,
             ),
             'yaxis': dict(
                 showticklabels=False,
@@ -260,13 +260,36 @@ class Model():
 
         return fig
 
+    def ScatterMatrix(self,  VariableSets: List[VariableSet], layout: dict, size: int):
+        varNames = {}
+        for var in VariableSets:
+            varNames[var.xVar] = var.xTitle
+
+        data = self.data[list(map(lambda var: var.xVar, VariableSets))]
+        data = data.rename(varNames, axis='columns')
+
+        fig = ff.create_scatterplotmatrix(
+            df=data,
+            diag='histogram')
+
+        fig = fig.update_layout({**self.layout, **layout})
+        fig.for_each_xaxis(lambda x: x.update(showgrid=True, showline=True, linewidth=1,
+                                              linecolor='rgba(0,0,0,0.3)', gridcolor='rgba(0,0,0,0.1)', rangemode="tozero"))
+        fig.for_each_yaxis(lambda x: x.update(showgrid=True, showline=True, linewidth=1,
+                           linecolor='rgba(0,0,0,0.3)', gridcolor='rgba(0,0,0,0.1)', rangemode="tozero"))
+        fig.update_layout(title_text='Scatter Matrix', title_x=0.5)
+        fig = fig.update_layout(
+            {'width': size, 'height': size, 'autosize': True})
+
+        return fig
+
     def LinearModel(self, yVarSet: VariableSet, XVariableSets: List[VariableSet]):
 
         varlist = list(map(lambda var: var.xVar, XVariableSets))
 
         data = self.data.dropna()
 
-        y = data[[yVarSet.yVar]]
+        y = data[[yVarSet.yVar]].apply(pd.to_numeric)
         X = data[varlist].apply(pd.to_numeric)
 
         X = sm.add_constant(X)

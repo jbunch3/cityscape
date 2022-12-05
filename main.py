@@ -1,3 +1,7 @@
+import matplotlib.pyplot as plt
+from scipy import stats
+import plotly.figure_factory as ff
+import plotly.express as px
 import chart_studio.plotly as py
 import plotly.graph_objects as go
 import pandas as pd
@@ -9,6 +13,7 @@ from plotly.subplots import make_subplots
 
 from Model.model_class import Model
 from Model.model_class import VariableSet
+from Model.olstable_template import LatexOLSTableOut
 
 baseLayout = {
     'margin': {'l': 0, 'r': 0, 't': 50, 'b': 50},
@@ -103,13 +108,17 @@ rawData["inv_dest"] = 1-rawData["destruction"]
 rawData["old_per_km2"] = rawData["very_old_residential"].div(
     rawData["area_km2"].values)
 rawData["old_per_capita"] = rawData["very_old_residential"].div(
-    rawData["population_2011"].values)
+    rawData["population_2011"].values).mul(10000)
 rawData["overnights_per_capita_2021"] = rawData["overnights_2021"].div(
+    rawData["population_2011"].values)
+rawData["overnights_foreign_per_capita"] = rawData["overnights_foreign_2019"].div(
+    rawData["population_2011"].values)
+rawData["overnights_domestic_per_capita"] = rawData["overnights_domestic_2019"].div(
     rawData["population_2011"].values)
 rawData["instagram_post_count_cap"] = rawData["instagram_post_count"].div(
     rawData["population_2011"].values)
 rawData["hotelsOnly_per_capita_2019"] = rawData["only_hotels_2019"].div(
-    rawData["population_2011"].values)
+    rawData["population_2011"].values).mul(10000)
 
 rawData["hotels_2019_per_capita"] = rawData["hotels_2019"].div(
     rawData["population_2011"].values)
@@ -130,6 +139,13 @@ rawData["arrivals_2021_per_capita"] = rawData["arrivals_2021"].div(
 capital = {'Landeshauptstadt': 1, 'Stadtkreis': 0,
            'Stadt': 0, 'Universitätsstadt': 0}
 rawData['capital'] = rawData['type'].map(capital)
+
+rawData['logGpdCapita'] = np.log(rawData['gdp_capita'])
+rawData['logHotelsOnly_per_capita'] = np.log(
+    rawData['hotelsOnly_per_capita_2019'])
+rawData['log_overnights_per_capita'] = np.log(
+    rawData['overnights_per_capita_2019'])
+
 
 BaseModel = Model(baseLayout, rawData)
 
@@ -229,7 +245,7 @@ corrVar = [
         xTitle="Average Stay",
     ),
     VariableSet(
-        xVar="overnights_per_capita_2019",
+        xVar="log_overnights_per_capita",
         xTitle="Overnights p.C.",
     ),
     VariableSet(
@@ -237,7 +253,7 @@ corrVar = [
         xTitle="Instagram p.C.",
     ),
     VariableSet(
-        xVar="gdp_capita",
+        xVar="logGpdCapita",
         xTitle="GDP p.C.",
     ),
     VariableSet(
@@ -256,33 +272,82 @@ corrVar = [
         xVar="monuments",
         xTitle="Monument",
     ),
+    VariableSet(
+        xVar="logHotelsOnly_per_capita",
+        xTitle="Hotels p.C.",
+    ),
 ]
-
 
 corrPlot = BaseModel.CorrelationHeatPlot(False, corr_layout, corrVar)
 corrPlotM = BaseModel.CorrelationHeatPlot(True, corr_layout, corrVar)
 
-linearModelXVars = [
+linearModelXVars_des = [
     VariableSet(
-        xVar="gdp_capita",
+        xVar="logGpdCapita",
+        xTitle="GDP p.C.",
     ),
     VariableSet(
         xVar="area_km2",
+        xTitle="Area Km2",
     ),
     VariableSet(
-        xVar="hotelsOnly_per_capita_2019",
-    ),
-    VariableSet(
-        xVar="old_per_capita",
+        xVar="logHotelsOnly_per_capita",
+        xTitle="Hotels p.C.",
     ),
     VariableSet(
         xVar="destruction",
+        xTitle="Destruction",
     ),
     VariableSet(
         xVar="capital",
+        xTitle="Capital City",
     ),
     VariableSet(
         xVar="monuments",
+        xTitle="Monuments",
+    ),
+]
+
+
+linearModelYVar = VariableSet(
+    yVar="log_overnights_per_capita",
+)
+
+model_overnights_des = BaseModel.LinearModel(
+    linearModelYVar, linearModelXVars_des)
+
+
+linearModelYVar = VariableSet(
+    yVar="instagram_post_count_cap",
+)
+
+model_instagram_des = BaseModel.LinearModel(
+    linearModelYVar, linearModelXVars_des)
+
+linearModelXVars_old = [
+    VariableSet(
+        xVar="logGpdCapita",
+        xTitle="GDP p.C.",
+    ),
+    VariableSet(
+        xVar="area_km2",
+        xTitle="Area Km2",
+    ),
+    VariableSet(
+        xVar="logHotelsOnly_per_capita",
+        xTitle="Hotels p.C.",
+    ),
+    VariableSet(
+        xVar="old_per_capita",
+        xTitle="Old Buildings p. C.",
+    ),
+    VariableSet(
+        xVar="capital",
+        xTitle="Capital City",
+    ),
+    VariableSet(
+        xVar="monuments",
+        xTitle="Monuments",
     ),
 ]
 
@@ -290,47 +355,16 @@ linearModelYVar = VariableSet(
     yVar="overnights_per_capita_2019",
 )
 
-model_overnights = BaseModel.LinearModel(linearModelYVar, linearModelXVars)
+model_overnights_old = BaseModel.LinearModel(
+    linearModelYVar, linearModelXVars_old)
 
 
 linearModelYVar = VariableSet(
     yVar="instagram_post_count_cap",
 )
 
-model_instagram = BaseModel.LinearModel(linearModelYVar, linearModelXVars)
-
-linearModelXVars = [
-    VariableSet(
-        xVar="gdp_capita",
-    ),
-    VariableSet(
-        xVar="area_km2",
-    ),
-    VariableSet(
-        xVar="hotelsOnly_per_capita_2019",
-    ),
-    VariableSet(
-        xVar="instagram_post_count_cap",
-    ),
-    VariableSet(
-        xVar="old_per_capita",
-    ),
-    VariableSet(
-        xVar="destruction",
-    ),
-    VariableSet(
-        xVar="capital",
-    ),
-    VariableSet(
-        xVar="monuments",
-    ),
-]
-
-linearModelYVar = VariableSet(
-    yVar="average_stay_length_2019",
-)
-
-model_lengthofstay = BaseModel.LinearModel(linearModelYVar, linearModelXVars)
+model_instagram_old = BaseModel.LinearModel(
+    linearModelYVar, linearModelXVars_old)
 
 fancyScatterHotels.show()
 fancyScatterOvernights.show()
@@ -340,16 +374,34 @@ quadScatterMobile.show()
 quadScatter.show()
 # py.plot(fig, filename = 'scatterMob1', auto_open=True)
 normDist.show()
-# py.plot(fig, filename = 'normDist1', auto_open=True)
+# py.plot(normDist, filename = 'normDist1', auto_open=True)
 corrPlot.show()
 corrPlotM.show()
-# py.plot(fig, filename='corr1', auto_open=False)
-# py.plot(fig, filename='corrMob1', auto_open=False)
+# py.plot(corrPlot, filename='corr1', auto_open=False)
+# py.plot(corrPlotM, filename='corrMob1', auto_open=False)
 
-print(model_overnights.summary())
-# print(res.summary().as_latex())
-print(model_instagram.summary())
-print(model_lengthofstay.summary())
+fig = ff.create_scatterplotmatrix(
+    rawData[list(map(lambda var: var.xVar, corrVar))], diag='histogram')
+fig = fig.update_layout({'width': 1200, 'height': 1200, 'autosize': True})
+fig.show()
+
+
+print(model_overnights_des.summary2())
+# print(model_overnights_des.summary2().as_latex())
+print(LatexOLSTableOut("Overnight Stays & Wartime Destruction",
+      linearModelXVars_des, model_overnights_des))
+
+print(model_instagram_des.summary2())
+print(LatexOLSTableOut("Instagram Posts & Wartime Destruction",
+      linearModelXVars_des, model_instagram_des))
+
+print(model_overnights_old.summary2())
+print(LatexOLSTableOut("Overnight Stays & Old Buildings",
+      linearModelXVars_old, model_overnights_old))
+
+print(model_instagram_old.summary2())
+print(LatexOLSTableOut("Instagram Posts & Old Building",
+      linearModelXVars_old, model_instagram_old))
 
 # End Old Building Example
 
@@ -357,15 +409,27 @@ print(model_lengthofstay.summary())
 # Nature Example
 #############################################################################################################################
 
+baseLayout = {
+    'margin': {'l': 0, 'r': 0, 't': 50, 'b': 50},
+    'paper_bgcolor': 'rgba(0,0,0,0)',
+    'plot_bgcolor': 'rgba(0,0,0,0)',
+    'showlegend': False,
+    'title_font_family': "Courier New",
+    'title_font_color': "black",
+    'font_family': "Courier New",
+    'font_color': 'rgba(0, 0, 0, 0.8)',
+    'font_size': 15,
+    'autosize': True,
+}
 
 rawData = pd.read_excel("./KreisDatasSmall.xlsx")
 
 modelData = rawData[['ID', 'No', 'GeoName', 'SimpleName', 'GpdCapita', 'Population',
                      'OldBuildings', 'AreaKm2', 'City', 'AllAccomodation2019', 'Beds2019',
-                     'Arrivals2019', 'Overnights2019', 'AverageLengthStay2019',
+                     'Arrivals2019', 'Overnights2019', 'Overnights2018', 'AverageLengthStay2019',
                      'OvernightsCapita2019', 'ArrivalsDomestic', 'ArrivalsForeign',
-                     'OvernightsDomestic', 'OvernightsForeign', 'AreaPark',
-                     'Hotels', 'TrainLines', 'UNESCO Sites']]
+                     'OvernightsDomestic2019', 'OvernightsForeign2019', 'AreaPark', 'AreaKm2Calc',
+                     'Hotels', 'TrainLines', 'UNESCO Sites', 'Momentum1Yr', 'Momentum5Yr']]
 
 # modelData = rawData[['ID', 'No', 'GeoName', 'SimpleName', 'GpdCapita', 'Population',
 #                      'OldBuildings', 'AreaKm2', 'City', 'AllAccomodation2019', 'Beds2019',
@@ -374,44 +438,74 @@ modelData = rawData[['ID', 'No', 'GeoName', 'SimpleName', 'GpdCapita', 'Populati
 #                      'OvernightsDomestic', 'OvernightsForeign', 'AreaPark', 'AreaKm2Calc',
 #                      'Hotels', 'TrainLines', 'UNESCO Sites']]
 
+modelData["ParkPerct"] = modelData["AreaPark"].mul(100).div(
+    modelData["AreaKm2Calc"].values)
 modelData["old_per_km2"] = modelData["OldBuildings"].div(
     modelData["AreaKm2"].values)
 modelData["old_per_capita"] = modelData["OldBuildings"].div(
+    modelData["Population"].values).mul(10000)
+modelData["Arrivals_perCapita"] = modelData["Arrivals2019"].div(
     modelData["Population"].values)
 modelData["overnights_per_capita"] = modelData["Overnights2019"].div(
     modelData["Population"].values)
-modelData["overnights_per_capita_foreign"] = modelData["OvernightsForeign"].div(
+modelData["overnights_per_capita_foreign"] = modelData["OvernightsForeign2019"].div(
     modelData["Population"].values)
-modelData["overnights_per_capita_domestic"] = modelData["OvernightsDomestic"].div(
+modelData["overnights_per_capita_domestic"] = modelData["OvernightsDomestic2019"].div(
     modelData["Population"].values)
 modelData["hotelsOnly_per_capita"] = modelData["Hotels"].div(
-    modelData["Population"].values)
+    modelData["Population"].values).mul(10000)
 modelData["trainkm_per_capita"] = modelData["TrainLines"].div(
     modelData["Population"].values)
+modelData["trainkm_per_km2"] = modelData["TrainLines"].div(
+    modelData["AreaKm2"].values)
+
+
+modelData = modelData.dropna()
+
+modelData['logtrainkm_per_km2'] = np.log(modelData['trainkm_per_km2'])
+modelData['logGpdCapita'] = np.log(modelData['GpdCapita'])
+modelData['logHotelsOnly_per_capita'] = np.log(
+    modelData['hotelsOnly_per_capita'])
+modelData['log_overnights_per_capita'] = np.log(
+    modelData['overnights_per_capita'])
+modelData['log_overnights_per_capita_foreign'] = np.log(
+    modelData['overnights_per_capita_foreign'])
+modelData['log_overnights_per_capita_domestic'] = np.log(
+    modelData['overnights_per_capita'])
 
 
 BaseModel = Model(baseLayout, modelData.dropna())
 
-corrVar = [
+unchangedTourism = [
     VariableSet(
-        xVar="AreaPark",
-        xTitle="Area Park",
+        xVar="Overnights2019",
+        xTitle="Overnights",
     ),
     VariableSet(
-        xVar="trainkm_per_capita",
-        xTitle="Train Km p.C.",
+        xVar="Momentum1Yr",
+        xTitle="Momentum 1Yr",
     ),
     VariableSet(
-        xVar="overnights_per_capita",
-        xTitle="Overnights p.C.",
+        xVar="Arrivals2019",
+        xTitle="Arrivals",
     ),
     VariableSet(
-        xVar="overnights_per_capita_foreign",
-        xTitle="Overnights F p.C.",
+        xVar="AverageLengthStay2019",
+        xTitle="Length of Stay",
+    ),
+]
+
+fig = BaseModel.ScatterMatrix(unchangedTourism, {}, 1000)
+fig.show()
+
+unchangedInfrastructure = [
+    VariableSet(
+        xVar="Hotels",
+        xTitle="Hotels",
     ),
     VariableSet(
-        xVar="overnights_per_capita_domestic",
-        xTitle="Overnights D p.C.",
+        xVar="Beds2019",
+        xTitle="Beds",
     ),
     VariableSet(
         xVar="GpdCapita",
@@ -422,16 +516,51 @@ corrVar = [
         xTitle="Area Km2",
     ),
     VariableSet(
+        xVar="TrainLines",
+        xTitle="Railroad Km",
+    ),
+]
+
+fig = BaseModel.ScatterMatrix(unchangedInfrastructure, {}, 1000)
+fig.show()
+
+
+corrVar = [
+    VariableSet(
+        xVar="log_overnights_per_capita",
+        xTitle="Overnights p.C.",
+    ),
+    VariableSet(
+        xVar="Momentum1Yr",
+        xTitle="Momentum 1Yr",
+    ),
+    VariableSet(
+        xVar="Momentum5Yr",
+        xTitle="Momentum 5Yr",
+    ),
+    VariableSet(
+        xVar="logHotelsOnly_per_capita",
+        xTitle="Hotels p.C.",
+    ),
+    VariableSet(
+        xVar="logGpdCapita",
+        xTitle="GDP p.C.",
+    ),
+    VariableSet(
+        xVar="logtrainkm_per_km2",
+        xTitle="Trains p.Km2",
+    ),
+    VariableSet(
+        xVar="UNESCO Sites",
+        xTitle="Monuments",
+    ),
+    VariableSet(
         xVar="old_per_capita",
         xTitle="Old Buildings p. C.",
     ),
     VariableSet(
-        xVar="hotelsOnly_per_capita",
-        xTitle="Hotels p.C.",
-    ),
-    VariableSet(
-        xVar="UNESCO Sites",
-        xTitle="UNESCO Sites",
+        xVar="ParkPerct",
+        xTitle="Park Area",
     ),
     VariableSet(
         xVar="City",
@@ -443,45 +572,131 @@ corrVar = [
 corrPlot = BaseModel.CorrelationHeatPlot(False, corr_layout, corrVar)
 corrPlot.show()
 
+fig = BaseModel.ScatterMatrix(corrVar, {}, 1600)
+fig.show()
+
 
 linearModelXVars = [
     VariableSet(
-        xVar="AreaPark",
+        xVar="Momentum1Yr",
+        xTitle="Momentum 1Yr",
     ),
     VariableSet(
-        xVar="GpdCapita",
+        xVar="Momentum5Yr",
+        xTitle="Momentum 5Yr",
+    ),
+    VariableSet(
+        xVar="logtrainkm_per_km2",
+        xTitle="Trains p.Km2",
+    ),
+    VariableSet(
+        xVar="ParkPerct",
+        xTitle="Park Area",
+    ),
+    VariableSet(
+        xVar="logGpdCapita",
+        xTitle="GDP p.C.",
     ),
     VariableSet(
         xVar="old_per_capita",
+        xTitle="Old Buildings p. C.",
     ),
     VariableSet(
-        xVar="hotelsOnly_per_capita",
+        xVar="logHotelsOnly_per_capita",
+        xTitle="Hotels p.C.",
     ),
     VariableSet(
         xVar="UNESCO Sites",
+        xTitle="Monuments",
     ),
     VariableSet(
         xVar="City",
+        xTitle="City",
     ),
 ]
 
 linearModelYVar = VariableSet(
-    yVar="overnights_per_capita",
+    yVar="log_overnights_per_capita",
 )
+
 
 model_overnights = BaseModel.LinearModel(linearModelYVar, linearModelXVars)
-print(model_overnights.summary())
+print(model_overnights.summary2())
+print(LatexOLSTableOut("Overnight Stays (Total)",
+      linearModelXVars, model_overnights))
 
 linearModelYVar = VariableSet(
-    yVar="overnights_per_capita_foreign",
+    yVar="log_overnights_per_capita_foreign",
 )
 
 model_overnights_f = BaseModel.LinearModel(linearModelYVar, linearModelXVars)
 print(model_overnights_f.summary())
+print(LatexOLSTableOut("Overnight Stays (Foreign)",
+      linearModelXVars, model_overnights_f))
 
 linearModelYVar = VariableSet(
-    yVar="overnights_per_capita_domestic",
+    yVar="log_overnights_per_capita_domestic",
 )
 
-model_overnights_f = BaseModel.LinearModel(linearModelYVar, linearModelXVars)
-print(model_overnights_f.summary())
+model_overnights_d = BaseModel.LinearModel(linearModelYVar, linearModelXVars)
+print(model_overnights_d.summary())
+print(LatexOLSTableOut("Overnight Stays (Domestic)",
+      linearModelXVars, model_overnights))
+
+##########################################
+
+exploreVars = [
+    VariableSet(
+        xVar="log_overnights_per_capita",
+        xTitle="Overnights p.C.",
+    ),
+    VariableSet(
+        xVar="logHotelsOnly_per_capita",
+        xTitle="Hotels p.C.",
+    ),
+    VariableSet(
+        xVar="logGpdCapita",
+        xTitle="GDP p.C.",
+    ),
+    VariableSet(
+        xVar="logtrainkm_per_km2",
+        xTitle="Trains p.Km2",
+    ),
+    VariableSet(
+        xVar="UNESCO Sites",
+        xTitle="Monuments",
+    ),
+    VariableSet(
+        xVar="old_per_capita",
+        xTitle="Old Buildings p. C.",
+    ),
+    VariableSet(
+        xVar="ParkPerct",
+        xTitle="Park Area",
+    ),
+    VariableSet(
+        xVar="City",
+        xTitle="City",
+    ),
+
+]
+
+fig = ff.create_scatterplotmatrix(
+    modelData[list(map(lambda var: var.xVar, exploreVars))], diag='histogram')
+fig = fig.update_layout({'width': 1200, 'height': 1200, 'autosize': True})
+fig.show()
+
+
+#####
+
+X_lognorm = np.random.lognormal(mean=0.0, sigma=1.7, size=500)
+qq = stats.probplot(X_lognorm, dist='lognorm', sparams=(1))
+x = np.array([qq[0][0][0], qq[0][0][-1]])
+
+fig = go.Figure()
+fig.add_scatter(x=qq[0][0], y=qq[0][1], mode='markers')
+fig.add_scatter(x=x, y=qq[1][1] + qq[1][0]*x, mode='lines')
+fig.layout.update(showlegend=False)
+fig.show()
+
+# Box Cox Transformation

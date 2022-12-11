@@ -1,3 +1,7 @@
+import geopandas as gpd
+import geojson
+import json
+from urllib.request import urlopen
 import matplotlib.pyplot as plt
 from scipy import stats
 import plotly.figure_factory as ff
@@ -476,106 +480,6 @@ modelData['log_overnights_per_capita_domestic'] = np.log(
 
 BaseModel = Model(baseLayout, modelData.dropna())
 
-unchangedTourism = [
-    VariableSet(
-        xVar="Overnights2019",
-        xTitle="Overnights",
-    ),
-    VariableSet(
-        xVar="Momentum1Yr",
-        xTitle="Momentum 1Yr",
-    ),
-    VariableSet(
-        xVar="Arrivals2019",
-        xTitle="Arrivals",
-    ),
-    VariableSet(
-        xVar="AverageLengthStay2019",
-        xTitle="Length of Stay",
-    ),
-]
-
-fig = BaseModel.ScatterMatrix(unchangedTourism, {}, 1000)
-fig.show()
-
-unchangedInfrastructure = [
-    VariableSet(
-        xVar="Hotels",
-        xTitle="Hotels",
-    ),
-    VariableSet(
-        xVar="Beds2019",
-        xTitle="Beds",
-    ),
-    VariableSet(
-        xVar="GpdCapita",
-        xTitle="GDP p.C.",
-    ),
-    VariableSet(
-        xVar="AreaKm2",
-        xTitle="Area Km2",
-    ),
-    VariableSet(
-        xVar="TrainLines",
-        xTitle="Railroad Km",
-    ),
-]
-
-fig = BaseModel.ScatterMatrix(unchangedInfrastructure, {}, 1000)
-fig.show()
-
-
-corrVar = [
-    VariableSet(
-        xVar="log_overnights_per_capita",
-        xTitle="Overnights p.C.",
-    ),
-    VariableSet(
-        xVar="Momentum1Yr",
-        xTitle="Momentum 1Yr",
-    ),
-    VariableSet(
-        xVar="Momentum5Yr",
-        xTitle="Momentum 5Yr",
-    ),
-    VariableSet(
-        xVar="logHotelsOnly_per_capita",
-        xTitle="Hotels p.C.",
-    ),
-    VariableSet(
-        xVar="logGpdCapita",
-        xTitle="GDP p.C.",
-    ),
-    VariableSet(
-        xVar="logtrainkm_per_km2",
-        xTitle="Trains p.Km2",
-    ),
-    VariableSet(
-        xVar="UNESCO Sites",
-        xTitle="Monuments",
-    ),
-    VariableSet(
-        xVar="old_per_capita",
-        xTitle="Old Buildings p. C.",
-    ),
-    VariableSet(
-        xVar="ParkPerct",
-        xTitle="Park Area",
-    ),
-    VariableSet(
-        xVar="City",
-        xTitle="City",
-    ),
-]
-
-
-corrPlot = BaseModel.CorrelationHeatPlot(False, corr_layout, corrVar)
-corrPlot.show()
-
-fig = BaseModel.ScatterMatrix(corrVar, {}, 1600)
-fig.show()
-
-
 linearModelXVars = [
     VariableSet(
         xVar="Momentum1Yr",
@@ -643,60 +547,78 @@ print(model_overnights_d.summary())
 print(LatexOLSTableOut("Overnight Stays (Domestic)",
       linearModelXVars, model_overnights))
 
-##########################################
 
-exploreVars = [
-    VariableSet(
-        xVar="log_overnights_per_capita",
-        xTitle="Overnights p.C.",
-    ),
-    VariableSet(
-        xVar="logHotelsOnly_per_capita",
-        xTitle="Hotels p.C.",
-    ),
-    VariableSet(
-        xVar="logGpdCapita",
-        xTitle="GDP p.C.",
-    ),
-    VariableSet(
-        xVar="logtrainkm_per_km2",
-        xTitle="Trains p.Km2",
-    ),
-    VariableSet(
-        xVar="UNESCO Sites",
-        xTitle="Monuments",
-    ),
-    VariableSet(
-        xVar="old_per_capita",
-        xTitle="Old Buildings p. C.",
-    ),
-    VariableSet(
-        xVar="ParkPerct",
-        xTitle="Park Area",
-    ),
-    VariableSet(
-        xVar="City",
-        xTitle="City",
-    ),
+#############################################################################################################################
+# Map Example
+#############################################################################################################################
 
-]
+with urlopen('https://raw.githubusercontent.com/plotly/datasets/master/geojson-counties-fips.json') as response:
+    counties = json.load(response)
 
-fig = ff.create_scatterplotmatrix(
-    modelData[list(map(lambda var: var.xVar, exploreVars))], diag='histogram')
-fig = fig.update_layout({'width': 1200, 'height': 1200, 'autosize': True})
+df = pd.read_csv("https://raw.githubusercontent.com/plotly/datasets/master/fips-unemp-16.csv",
+                 dtype={"fips": str})
+df.head()
+
+with urlopen('https://raw.githubusercontent.com/plotly/datasets/master/geojson-counties-fips.json') as response:
+    counties = json.load(response)
+
+df = pd.read_csv("https://raw.githubusercontent.com/plotly/datasets/master/fips-unemp-16.csv",
+                 dtype={"fips": str})
+
+
+features = counties['features'][0]
+
+fig = px.choropleth_mapbox(df, geojson=counties, locations='fips', color='unemp',
+                           color_continuous_scale="Viridis",
+                           range_color=(0, 12),
+                           mapbox_style="carto-positron",
+                           zoom=3, center={"lat": 37.0902, "lon": -95.7129},
+                           opacity=0.5,
+                           labels={'unemp': 'unemployment rate'}
+                           )
+
+fig.update_layout(margin={"r": 0, "t": 0, "l": 0, "b": 0})
 fig.show()
 
+#############################################################################################################################
 
-#####
+rawData = pd.read_excel("./Overnight(2019).xlsx", dtype='object')
+rawData['NullId'] = rawData['NullId'].astype("string")
+rawData['Overnights'] = pd.to_numeric(
+    rawData['Overnights pC'], errors='ignore')
+modelData = rawData[['NullId', 'Overnights']].dropna()
 
-X_lognorm = np.random.lognormal(mean=0.0, sigma=1.7, size=500)
-qq = stats.probplot(X_lognorm, dist='lognorm', sparams=(1))
-x = np.array([qq[0][0][0], qq[0][0][-1]])
+deGeoJson = gpd.read_file("GermanyKreisen2.geojson")
+deGeoJson.dropna(axis=0, subset="geometry", how="any", inplace=True)
+deGeoJson = pd.merge(deGeoJson, modelData,
+                     left_on='krs_code', right_on='NullId')
 
-fig = go.Figure()
-fig.add_scatter(x=qq[0][0], y=qq[0][1], mode='markers')
-fig.add_scatter(x=x, y=qq[1][1] + qq[1][0]*x, mode='lines')
-fig.layout.update(showlegend=False)
+deGeoJson['Overnights'] = np.log(pd.to_numeric(
+    deGeoJson['Overnights']))
+deGeoJson = deGeoJson.set_index('krs_code')
+
+deGeoJson["geometry"] = (
+    deGeoJson.to_crs(deGeoJson.estimate_utm_crs()).simplify(
+        1000).to_crs(deGeoJson.crs)
+)
+
+deGeoJson = deGeoJson.to_crs(epsg=4326)
+geojson = deGeoJson.__geo_interface__
+
+deGeoJson['Overnights']
+
+
+deGeoJson.dropna(axis=0, subset="Overnights", how="any", inplace=True)
+
+
+fig = px.choropleth_mapbox(deGeoJson, geojson=deGeoJson.geometry, locations=deGeoJson.index, color='Overnights',
+                           color_continuous_scale="Viridis",
+                           #    range_color=(0, 12),
+                           mapbox_style="carto-positron",
+                           zoom=3, center={"lat": 54.78252, "lon": 9.43751},
+                           opacity=0.5,
+                           labels={'Name': 'krs_name_short',
+                                   'Log Overnights': 'Overnights'}
+                           )
+
 fig.show()
-
-# Box Cox Transformation

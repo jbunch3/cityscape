@@ -260,7 +260,7 @@ class Model():
 
         return fig
 
-    def ScatterMatrix(self,  VariableSets: List[VariableSet], layout: dict, size: int):
+    def ScatterMatrix(self, mobile: bool,  VariableSets: List[VariableSet], layout: dict, size: int):
         varNames = {}
         for var in VariableSets:
             varNames[var.xVar] = var.xTitle
@@ -277,6 +277,9 @@ class Model():
                                               linecolor='rgba(0,0,0,0.3)', gridcolor='rgba(0,0,0,0.1)'))
         fig.for_each_yaxis(lambda x: x.update(showgrid=True, showline=True, linewidth=1,
                            linecolor='rgba(0,0,0,0.3)', gridcolor='rgba(0,0,0,0.1)'))
+        if mobile:
+            fig.for_each_yaxis(lambda x: x.update(showgrid=True, showline=True, linewidth=1,
+                                                  linecolor='rgba(0,0,0,0.3)', gridcolor='rgba(0,0,0,0.1)'))
         fig.update_layout(title_text='Scatter Matrix', title_x=0.5)
         fig = fig.update_layout(
             {'width': size, 'height': size, 'autosize': True})

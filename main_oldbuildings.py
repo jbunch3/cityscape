@@ -468,3 +468,60 @@ print(LatexOLSTableOut("Foreign Stays - Destruction",
 print(model_overnights_old_domestic.summary2())
 print(LatexOLSTableOut("Domestic Stays - Destruction",
       linearModelXVars_des, model_overnights_old_domestic))
+
+# Results ############################################################################################################################
+
+
+linearModelXVars_old = [
+    VariableSet(
+        xVar="instagram_post_count_cap",
+        xTitle="Instagram Posts",
+    ),
+    VariableSet(
+        xVar="Momentum1Yr",
+        xTitle="Momentum 1Yr",
+    ),
+    VariableSet(
+        xVar="Momentum5Yr",
+        xTitle="Momentum 5Yr",
+    ),
+    VariableSet(
+        xVar="area_km2",
+        xTitle="Area Km2",
+    ),
+    VariableSet(
+        xVar="logGpdCapita",
+        xTitle="GDP p.C.",
+    ),
+    VariableSet(
+        xVar="logHotelsOnly_per_capita",
+        xTitle="Hotels p.C.",
+    ),
+    VariableSet(
+        xVar="UNESCO Sites",
+        xTitle="Monuments",
+    ),
+    VariableSet(
+        xVar="capital",
+        xTitle="Capital City",
+    ),
+    VariableSet(
+        xVar="Coast",
+        xTitle="Coast",
+    ),
+    VariableSet(
+        xVar="old_per_capita",
+        xTitle="Old Buildings p. C.",
+    ),
+]
+
+linearModelYVar = VariableSet(
+    yVar="overnights_per_capita",
+)
+
+model_overnights_old = BaseModel.LinearModel(
+    linearModelYVar, linearModelXVars_old)
+
+print(model_overnights_old.summary2())
+print(LatexOLSTableOut("Foreign Stays - Destruction",
+      linearModelXVars_des, model_overnights_old_foreign))

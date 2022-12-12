@@ -80,14 +80,14 @@ linearModelXVars = [
         xVar="logtrainkm_per_km2",
         xTitle="Trains p.Km2",
     ),
-    VariableSet(
-        xVar="ParkPerct",
-        xTitle="Park Area",
-    ),
     # VariableSet(
-    #     xVar="hasNationalPark",
-    #     xTitle="Park Boolean",
+    #     xVar="ParkPerct",
+    #     xTitle="Park Area",
     # ),
+    VariableSet(
+        xVar="hasNationalPark",
+        xTitle="Park Boolean",
+    ),
     VariableSet(
         xVar="logGpdCapita",
         xTitle="GDP p.C.",

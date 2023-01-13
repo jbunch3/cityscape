@@ -296,6 +296,9 @@ class Model():
         X = data[varlist].apply(pd.to_numeric)
 
         X = sm.add_constant(X)
+
+        y.index = data["SimpleName"]
+        X.index = data["SimpleName"]
         mod = sm.OLS(y, X)
         res = mod.fit(cov_type='HC3', use_t=True)
 

@@ -6,14 +6,17 @@ def LoadData():
 
     # Load County Data ############################################################################################################################
 
-    rawCounty = pd.read_excel("./KreisDatasSmall.xlsx", dtype={'ID': str})
+    rawCounty = pd.read_excel(
+        "./GermanCountyDataUpdated.xlsx", dtype={'ID': str})
 
     countyData = rawCounty[['ID', 'No', 'GeoName', 'SimpleName', 'GpdCapita', 'Population',
                            'OldBuildings', 'AreaKm2', 'City', 'AllAccomodation2019', 'Beds2019',
                             'Arrivals2019', 'Overnights2019', 'Overnights2018', 'AverageLengthStay2019',
                             'OvernightsCapita2019', 'ArrivalsDomestic', 'ArrivalsForeign',
                             'OvernightsDomestic2019', 'OvernightsForeign2019', 'AreaPark', 'AreaKm2Calc',
-                            'Hotels', 'TrainLines', 'UNESCO Sites', 'Momentum1Yr', 'Momentum5Yr', 'Coast']]
+                            'Hotels', 'TrainLines', 'UNESCO Sites', 'Momentum1Yr', 'Momentum5Yr', 'Coast', 'Airports',
+                            'Airport Distance', 'TownCount', 'AreaCity', 'AreaVineyards',
+                            'AreaCityPerc', 'AreaParkPerc', 'AreaVineyard']]
 
     tmp = countyData["AreaPark"].mul(100).div(
         countyData["AreaKm2Calc"].values)
@@ -38,9 +41,16 @@ def LoadData():
         countyData["Population"].values)
 
     tmp = countyData["TrainLines"].div(
-        countyData["AreaKm2"].values)
-
+        countyData["AreaKm2Calc"].values)
     countyData["trainkm_per_km2"] = [elem if elem > 0 else 0 for elem in tmp]
+
+    tmp = countyData["UNESCO Sites"].div(
+        countyData["AreaKm2Calc"].values).mul(1000000)
+    countyData["MonumentsKm2"] = [elem if elem > 0 else 0 for elem in tmp]
+
+    countyData["AreaCityPerc"] = countyData["AreaCityPerc"] * 100
+    countyData["AreaParkPerc"] = countyData["AreaParkPerc"] * 100
+    countyData["AreaVineyard"] = countyData["AreaVineyard"] * 100
 
     # Loat and Merge City Data ############################################################################################################################
 
@@ -51,7 +61,7 @@ def LoadData():
                'Stadt': 0, 'Universitätsstadt': 0}
     rawCity['capital'] = rawCity['type'].map(capital)
 
-    cityData = rawCity[['id', 'city', 'type', 'area_km2', 'instagram_post_count', 'destruction', 'inner_city_destroyed',
+    cityData = rawCity[['id', 'city', 'type', 'wiki_len', 'area_km2', 'instagram_post_count', 'destruction', 'inner_city_destroyed',
                         'capital']]
 
     cityData = pd.merge(cityData, countyData, how='inner',

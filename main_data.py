@@ -99,10 +99,6 @@ unchangedInfrastructure = [
         xTitle="Hotels",
     ),
     VariableSet(
-        xVar="Beds2019",
-        xTitle="Beds",
-    ),
-    VariableSet(
         xVar="GpdCapita",
         xTitle="GDP p.C.",
     ),
@@ -113,6 +109,14 @@ unchangedInfrastructure = [
     VariableSet(
         xVar="TrainLines",
         xTitle="Railroad Km",
+    ),
+    VariableSet(
+        xVar="AreaCityPerc",
+        xTitle="City Area (%)",
+    ),
+    VariableSet(
+        xVar="Airports",
+        xTitle="Airports",
     ),
 ]
 unchangedInfrastructure_m = [
@@ -157,12 +161,12 @@ corrVar = [
         xTitle="Trains p.Km2",
     ),
     VariableSet(
-        xVar="UNESCO Sites",
-        xTitle="Monuments",
+        xVar="MonumentsKm2",
+        xTitle="Monuments p.Km2",
     ),
     VariableSet(
-        xVar="City",
-        xTitle="City",
+        xVar="AreaCityPerc",
+        xTitle="City Area (%)",
     ),
     VariableSet(
         xVar="logPopulation",
@@ -238,17 +242,17 @@ corrScatter.show()
 corrScatter_m.show()
 
 py.plot(unchangedTourismScatter,
-        filename='unchangedTourismScatter', auto_open=True)
+        filename='unchangedTourismScatter', auto_open=False)
 py.plot(unchangedTourismScatter_m,
-        filename='unchangedTourismScatter_m', auto_open=True)
+        filename='unchangedTourismScatter_m', auto_open=False)
 py.plot(unchanedInfrastructureScatter,
-        filename='unchanedInfrastructureScatter', auto_open=True)
+        filename='unchanedInfrastructureScatter', auto_open=False)
 py.plot(unchanedInfrastructureScatter_m,
-        filename='unchanedInfrastructureScatter_m', auto_open=True)
+        filename='unchanedInfrastructureScatter_m', auto_open=False)
 py.plot(corrPlot, filename='corrPlotData', auto_open=False)
 py.plot(corrPlot_m, filename='corrPlotData_m', auto_open=False)
-py.plot(corrScatter, filename='corrScatterData', auto_open=True)
-py.plot(corrScatter_m, filename='corrScatterData_m', auto_open=True)
+py.plot(corrScatter, filename='corrScatterData', auto_open=False)
+py.plot(corrScatter_m, filename='corrScatterData_m', auto_open=False)
 
 
 ##########################################
@@ -279,12 +283,12 @@ exploreVars = [
         xTitle="Old Buildings p. C.",
     ),
     VariableSet(
-        xVar="ParkPerct",
+        xVar="AreaParkPerc",
         xTitle="Park Area",
     ),
     VariableSet(
-        xVar="City",
-        xTitle="City",
+        xVar="AreaCityPerc",
+        xTitle="City Area",
     ),
 
 ]
@@ -431,8 +435,8 @@ linearModelXVars = [
         xTitle="Monuments",
     ),
     VariableSet(
-        xVar="City",
-        xTitle="City",
+        xVar="AreaCityPerc",
+        xTitle="City Area (%)",
     ),
     VariableSet(
         xVar="Coast",
@@ -462,7 +466,10 @@ linearModelYVar = VariableSet(
 
 model_overnights = BaseModel.LinearModel(linearModelYVar, linearModelXVars)
 print(model_overnights.summary2())
-print(LatexOLSTableOut("Overnight Stays (Per Capita)",
+html = model_overnights.summary()
+html.tables[0].as_html() + html.tables[1].as_html() + html.tables[2].as_html()
+html.tables[0].as_text() + html.tables[1].as_text() + html.tables[2].as_text()
+print(LatexOLSTableOutEight("Overnight Stays (Per Capita)",
       linearModelXVars, model_overnights))
 
 linearModelYVar = VariableSet(

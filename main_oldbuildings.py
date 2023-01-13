@@ -231,10 +231,6 @@ corrVar = [
         xTitle="Momentum 5Yr",
     ),
     VariableSet(
-        xVar="logHotelsOnly_per_capita",
-        xTitle="Hotels p.C.",
-    ),
-    VariableSet(
         xVar="logGpdCapita",
         xTitle="GDP p.C.",
     ),

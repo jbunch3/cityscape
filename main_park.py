@@ -80,14 +80,14 @@ linearModelXVars = [
         xVar="logtrainkm_per_km2",
         xTitle="Trains p.Km2",
     ),
-    # VariableSet(
-    #     xVar="ParkPerct",
-    #     xTitle="Park Area",
-    # ),
     VariableSet(
-        xVar="hasNationalPark",
-        xTitle="Park Boolean",
+        xVar="AreaParkPerc",
+        xTitle="Park Area",
     ),
+    # VariableSet(
+    #     xVar="hasNationalPark",
+    #     xTitle="Park Boolean",
+    # ),
     VariableSet(
         xVar="logGpdCapita",
         xTitle="GDP p.C.",
@@ -101,12 +101,16 @@ linearModelXVars = [
         xTitle="Monuments",
     ),
     VariableSet(
-        xVar="City",
-        xTitle="City",
+        xVar="AreaCityPerc",
+        xTitle="City Area",
     ),
     VariableSet(
         xVar="Coast",
         xTitle="Coast",
+    ),
+    VariableSet(
+        xVar="AreaVineyard",
+        xTitle="AreaVineyard",
     ),
 ]
 
@@ -168,9 +172,9 @@ py.plot(corrPlot_parks_m,
 
 
 countyData[["log_overnights_per_capita", "Momentum1Yr", "Momentum5Yr", "logtrainkm_per_km2",
-            "logGpdCapita", "logHotelsOnly_per_capita", "UNESCO Sites", "City", "Coast", 'ParkPerct']].describe()
+            "logGpdCapita", "logHotelsOnly_per_capita", "UNESCO Sites", "AreaCityPerc", "Coast", 'AreaParkPerc']].describe()
 
-countyData[['ParkPerct']].describe()
+countyData[['AreaParkPerc']].describe()
 
 linearModelYVar = VariableSet(
     yVar="log_overnights_per_capita",

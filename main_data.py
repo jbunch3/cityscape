@@ -468,15 +468,17 @@ model_overnights = BaseModel.LinearModel(linearModelYVar, linearModelXVars)
 print(model_overnights.summary2())
 html = model_overnights.summary()
 html.tables[0].as_html() + html.tables[1].as_html() + html.tables[2].as_html()
-html.tables[0].as_text() + html.tables[1].as_text() + html.tables[2].as_text()
 print(LatexOLSTableOutEight("Overnight Stays (Per Capita)",
       linearModelXVars, model_overnights))
 
 linearModelYVar = VariableSet(
-    yVar="log_overnights",
+    yVar="log_overnights_per_capita_foreign",
 )
 
 model_overnights = BaseModel.LinearModel(linearModelYVar, linearModelXVars)
 print(model_overnights.summary2())
+html = model_overnights.summary()
+html.tables[0].as_html()
+html.tables[1].as_html()
 print(LatexOLSTableOut("Overnight Stays (Total)",
       linearModelXVars, model_overnights))

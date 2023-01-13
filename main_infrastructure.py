@@ -160,6 +160,9 @@ linearModelYVar = VariableSet(
 model_overnights_wikipedia = CityModel.LinearModel(
     linearModelYVar, linearModelXVars_wiki)
 print(model_overnights_wikipedia.summary2())
+html = model_overnights_wikipedia.summary()
+html.tables[0].as_html()
+html.tables[1].as_html()
 print(LatexOLSTableOut("Overnight Stays (Per Hotel)",
       linearModelXVars_wiki, model_overnights_wikipedia))
 
@@ -266,6 +269,10 @@ linearModelXVars = [
         xTitle="GDP p.C.",
     ),
     VariableSet(
+        xVar="logHotelsOnly_per_capita",
+        xTitle="Hotels p.C.",
+    ),
+    VariableSet(
         xVar="UNESCO Sites",
         xTitle="Monuments",
     ),
@@ -280,10 +287,6 @@ linearModelXVars = [
     VariableSet(
         xVar="Coast",
         xTitle="Coast",
-    ),
-    VariableSet(
-        xVar="AreaParkPerc",
-        xTitle="Park Area",
     ),
     VariableSet(
         xVar="AreaVineyards",
@@ -309,11 +312,14 @@ countyData[["log_overnights_per_hotel", "Momentum1Yr", "Momentum5Yr", "logtraink
 
 
 linearModelYVar = VariableSet(
-    yVar="log_overnights_per_hotel",
+    yVar="log_overnights_per_capita",
 )
 
 model_overnights = BaseModel.LinearModel(linearModelYVar, linearModelXVars)
 print(model_overnights.summary2())
+html = model_overnights.summary()
+html.tables[0].as_html()
+html.tables[1].as_html()
 print(LatexOLSTableOut("Overnight Stays (Per Hotel)",
       linearModelXVars, model_overnights))
 

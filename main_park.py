@@ -61,7 +61,9 @@ countyData['log_overnights_foreign'] = np.log(
     countyData['OvernightsForeign2019'])
 countyData['log_overnights_domestic'] = np.log(
     countyData['OvernightsDomestic2019'])
-countyData['hasNationalPark'] = (countyData["ParkPerct"] > 0).astype(int)
+countyData['AreaParkPerc'][countyData["AreaParkPerc"] > 100] = 100
+
+countyData['hasNationalPark'] = (countyData["AreaParkPerc"] > 0).astype(int)
 
 countyData = countyData.dropna()
 
@@ -128,14 +130,14 @@ corrScatter = BaseModel.ScatterMatrix(False,
                                           xTitle="Overnights p.C.",
                                       ),
                                           VariableSet(
-                                          xVar="ParkPerct",
-                                          xTitle="Park Area",
+                                          xVar="AreaParkPerc",
+                                          xTitle="Park Area (%)",
                                       )], {}, 800)
 
 corrScatter.show()
 
 py.plot(corrScatter,
-        filename='nationalparks', auto_open=True)
+        filename='nationalparks', auto_open=False)
 
 corr_layout = {
     'title': {
@@ -182,6 +184,9 @@ linearModelYVar = VariableSet(
 
 model_overnights = BaseModel.LinearModel(linearModelYVar, linearModelXVars)
 print(model_overnights.summary2())
+html = model_overnights.summary()
+html.tables[0].as_html()
+html.tables[1].as_html()
 print(LatexOLSTableOut("Overnight Stays and National Parkland",
       linearModelXVars, model_overnights))
 
@@ -193,6 +198,9 @@ linearModelYVar = VariableSet(
 
 model_overnights_f = BaseModel.LinearModel(linearModelYVar, linearModelXVars)
 print(model_overnights_f.summary())
+html = model_overnights_f.summary()
+html.tables[0].as_html()
+html.tables[1].as_html()
 print(LatexOLSTableOut("Overnight Stays (Foreign) and National Parkland",
       linearModelXVars, model_overnights_f))
 
@@ -204,5 +212,8 @@ linearModelYVar = VariableSet(
 
 model_overnights_d = BaseModel.LinearModel(linearModelYVar, linearModelXVars)
 print(model_overnights_d.summary())
+html = model_overnights_d.summary()
+html.tables[0].as_html()
+html.tables[1].as_html()
 print(LatexOLSTableOut("Overnight Stays (Domestic) and National Parkland",
       linearModelXVars, model_overnights))
